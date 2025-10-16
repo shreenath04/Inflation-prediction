@@ -31,7 +31,8 @@ Can pre-crisis monetary and macroeconomic indicators (interest rates, GDP, unemp
 - Ensemble blending balances demand and supply-side effects.
 
 ## 📷 Visuals
-_(Insert your key plots here: historical fit + forecast chart)_
+<img width="1148" height="574" alt="image" src="https://github.com/user-attachments/assets/002ee22f-9814-487d-9556-91de6a2efe3c" />
+
 
 ## 🧮 Tools
 - pandas, numpy, matplotlib, seaborn
