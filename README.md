@@ -32,6 +32,7 @@ Can pre-crisis monetary and macroeconomic indicators (interest rates, GDP, unemp
 
 ## 📷 Visuals
 <img width="1148" height="574" alt="image" src="https://github.com/user-attachments/assets/002ee22f-9814-487d-9556-91de6a2efe3c" />
+<img width="1195" height="600" alt="Screenshot 2025-10-16 at 6 00 58 PM" src="https://github.com/user-attachments/assets/f2755e57-39b6-44a2-9400-3605d81e8fe3" />
 
 
 ## 🧮 Tools
