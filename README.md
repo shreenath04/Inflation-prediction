@@ -1,6 +1,6 @@
 # Inflation Prediction (1983–2023)
 **Author:** Shreenath Gandhi  
-**Tech Stack:** Python, Pandas, Scikit-learn, Seaborn, Matplotlib
+**Tech Stack:** Python, Pandas, Scikit-learn, Seaborn, Matplotlib, FastAPI, Joblib
 
 ## 🎯 Objective
 Can pre-crisis monetary and macroeconomic indicators (interest rates, GDP, unemployment) predict future U.S. inflation trends?
@@ -30,15 +30,33 @@ Can pre-crisis monetary and macroeconomic indicators (interest rates, GDP, unemp
 - Post-2008 monetary regimes behave differently—captured by feature flags.
 - Ensemble blending balances demand and supply-side effects.
 
+## 🚀 API Deployment
+The trained ensemble is served as a REST API using FastAPI.
+```bash
+# Train and save models
+python train.py
+
+# Start the API
+uvicorn main:app --reload
+```
+Interactive docs: `http://localhost:8000/docs`
+
+```json
+POST /predict
+{
+  "synthetic_target_rate": 5.25,
+  "real_gdp_change": 2.1,
+  "unemployment_rate": 3.9,
+  "deviation": -0.15,
+  "is_post_2008": 1,
+  "is_crisis": 0
+}
+```
+
 ## 📷 Visuals
 <img width="1148" height="574" alt="image" src="https://github.com/user-attachments/assets/002ee22f-9814-487d-9556-91de6a2efe3c" />
 <img width="1195" height="600" alt="Screenshot 2025-10-16 at 6 00 58 PM" src="https://github.com/user-attachments/assets/f2755e57-39b6-44a2-9400-3605d81e8fe3" />
 
-
-## 🧮 Tools
-- pandas, numpy, matplotlib, seaborn
-- scikit-learn (RandomForestRegressor, LOOCV)
-- plotly (optional, for interactive visuals)
 
 ## Thought process and reasoning behind decisions
 This project wasn’t built in one pass. Below is the decision log—what we tried, why we did it, what broke, and how we fixed it.
@@ -68,7 +86,7 @@ Related feature: Deviation = Effective – SyntheticTarget (signed), plus Deviat
 Why: We model at the annual level; filling sub-annual gaps creates false certainty and can bias aggregates.
 
 
-5) Annual aggregation (fixing the “wild %” bug)
+4) Annual aggregation (fixing the “wild %” bug)
 - Initial mistake: We compounded values that were already annualized or duplicated across months, creating absurd results (e.g., GDP 35%, CPI 70%).
 - Fix:
   - If the source is already annualized (common for GDP growth and often for CPI YoY), use mean/median, not compounding.
@@ -77,14 +95,14 @@ Why: We model at the annual level; filling sub-annual gaps creates false certain
 Outcome: Realistic ranges: GDP ~ −3% to +7%, CPI ~ 1% to 5%, Unemployment ~ 4% to 10%.
 
 
-6) Event diagnostics & interpretation
+5) Event diagnostics & interpretation
 - Observation: Large deviation spikes/dips around 1987 and 2008; other blips mid-90s and early-2000s.
 - Decision: Keep Deviation and Deviation_abs (during EDA) to see stress.
 - Interpretation: Not all big deviations = “crisis.” In 2008–09, policy cut rates to zero (small deviation but extreme context).
 - Conclusion: Do not redefine “crisis” by deviation magnitude alone; treat deviation as a continuous signal and crisis as a context flag.
 
 
-8) Crisis flags: static vs dynamic
+6) Crisis flags: static vs dynamic
 - Initial idea: Dynamic is_crisis from deviation spikes.
 - Decision: Keep is_crisis static (e.g., 1987–88, 2001–02, 2008–09).
   
@@ -93,13 +111,13 @@ Why: Preserves interpretability and consistency across analyses.
 - Benefit: Encodes direction of policy stress without moving the goalposts.
 
 
-9) Final feature set (annual, interpretable)
+7) Final feature set (annual, interpretable)
 - Core columns: Year, Synthetic_Target_Rate, Deviation, Real GDP (Percent Change), Unemployment Rate, Inflation Rate.
 - Context flags: is_post_2008, is_crisis, and regime3 (−1/0/+1).
 - Rationale: Compact, macro-intuitive set that captures stance (target), slippage (deviation), real activity (GDP), slack (unemployment), and regime.
 
 
-10) Modeling strategy (small-sample, interpretable)
+8) Modeling strategy (small-sample, interpretable)
 - Baseline: Linear models for sanity checks.
 - Final approach: Directional Ensemble (“positive vs negative drivers”):
 - Positive model (forest): Synthetic_Target_Rate, Real GDP, Deviation, is_post_2008, regime3.
@@ -109,18 +127,18 @@ Why: Preserves interpretability and consistency across analyses.
 Why: Mirrors macro logic (inflationary vs disinflationary forces) while staying data-driven.
 - LOOCV: Chosen due to ~35 annual samples. Uses nearly all data while measuring generalization per point.
 
-11) Things tried that didn’t move much (and why)
+9) Things tried that didn’t move much (and why)
 - Time-weighted training (RF): Sample weights had limited effect—RF splits were similar under smooth Great-Moderation dynamics; ensemble dominated by the positive model.
 - GBRT / HistGBR: Considered for stronger response to weights; required NaN handling (we used HistGBR for NaN tolerance). Kept RF for clarity and stability in the final repo.
 - Dynamic crisis from deviation magnitude: Conceptually neat, but confused semantics; we kept crisis static and used deviation separately.
 
-12) Post-2017 forecasting & limitations
+10) Post-2017 forecasting & limitations
 - GDP & Inflation forecasts (2018–2023): We used the trained structure to project out-of-sample.
 - Reality check: The model misses COVID-era extremes (2020–2021) because no such shock exists in training (1983–2017).
 - Mitigation: Mark pandemic years as is_crisis=1 and set regime3 (easing). Still, structural breaks remain hard without new features (e.g., Fed balance sheet %, supply-chain stress, energy shocks).
 - Honest positioning: Forecasts are directional/structural, not point-perfect during shocks.
 
-14) Reproducibility & repo hygiene
+11) Reproducibility & repo hygiene
 - Kept a minimal requirements.txt (pandas/numpy/sklearn/matplotlib/seaborn/statsmodels/plotly).
 - Separated notebooks:
 - Data Preparation (cleaning, aggregation, features)
