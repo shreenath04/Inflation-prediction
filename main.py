@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 import numpy as np
 import joblib
 import pandas as pd
+from fastapi.middleware.cors import CORSMiddleware
 
 # ── Load models once at startup ───────────────────────────────────────────────
 try:
@@ -21,6 +22,14 @@ app = FastAPI(
     title="Inflation Prediction API",
     description="Dual Random Forest ensemble trained on 35 years of Federal Reserve macroeconomic data.",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # ── Request schema ────────────────────────────────────────────────────────────
